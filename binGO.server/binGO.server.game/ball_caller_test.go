@@ -1,4 +1,4 @@
-package main
+package game_manager
 
 import (
 	"slices"
@@ -6,11 +6,13 @@ import (
 )
 
 func TestCallBingoBall(t *testing.T) {
+	gm := NewGameManager()
+
 	ballsCalled := []int{}
 	for range 75 {
-		ball := callBingoBall(ballsCalled)
-		if ball == -1 {
-			t.Error("Expected a valid ball number, but got -1 indicating all balls have been called.")
+		ball, error := gm.CallBingoBall()
+		if error != nil {
+			t.Errorf("Unexpected error: %v", error)
 			return
 		}
 
@@ -20,6 +22,12 @@ func TestCallBingoBall(t *testing.T) {
 		}
 
 		ballsCalled = append(ballsCalled, ball)
+	}
+
+	// Check if all balls have been called
+	_, error := gm.CallBingoBall()
+	if error == nil || error.Error() != "all balls have been called" {
+		t.Errorf("Expected error 'all balls have been called', but got: %v", error)
 	}
 }
 
@@ -41,7 +49,7 @@ func TestGetBingoBallText(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := getBingoBallText(test.ball)
+		result := GetBingoBallText(test.ball)
 		if result != test.expected {
 			t.Errorf("Expected %s for ball %d, but got %s", test.expected, test.ball, result)
 		}
