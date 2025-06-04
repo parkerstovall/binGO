@@ -1,4 +1,4 @@
-package main
+package game_manager
 
 import (
 	"fmt"
@@ -6,27 +6,38 @@ import (
 	"slices"
 )
 
-func callBingoBall(previousBalls []int) int {
+type GameManager struct {
+	CalledBalls []int
+}
+
+func NewGameManager() *GameManager {
+	return &GameManager{
+		CalledBalls: []int{},
+	}
+}
+
+func (gm *GameManager) CallBingoBall() (int, error) {
 	min := 1
 	max := 76
 
-	if len(previousBalls) >= (max - min) {
-		return -1 // All balls have been called
+	if len(gm.CalledBalls) >= (max - min) {
+		return -1, fmt.Errorf("all balls have been called")
 	}
 
 	for {
 		ball := rand.Intn(max-min) + min
 
 		// Check if the ball has already been called
-		if !slices.Contains(previousBalls, ball) {
+		if !slices.Contains(gm.CalledBalls, ball) {
 			// If not, return the ball
-			return ball
+			gm.CalledBalls = append(gm.CalledBalls, ball)
+			return ball, nil
 		}
 	}
 }
 
 // Determine the column based on the ball number
-func getBingoBallText(ball int) string {
+func GetBingoBallText(ball int) string {
 	if ball < 1 || ball > 75 {
 		return "Invalid ball number"
 	} else if ball <= 15 {
