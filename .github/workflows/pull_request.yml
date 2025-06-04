@@ -15,10 +15,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4      
-        with:
-            fetch-depth: 0  
-            ref: ${{ github.event.pull_request.head.ref }}
+        uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
 
@@ -33,17 +30,6 @@ jobs:
       - name: Test
         run: |
             go test
-
-      - name: Format
-        run: |
-            go fmt
-
-      - name: Pull changes
-        run: |
-            git pull
-
-      - name: Commit changes if any
-        uses: EndBug/add-and-commit@v9
         
   Server:
     runs-on: ubuntu-latest
@@ -54,10 +40,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4      
-        with:
-            fetch-depth: 0  
-            ref: ${{ github.event.pull_request.head.ref }}
+        uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
 
@@ -77,10 +60,6 @@ jobs:
         run: |
             go fmt
 
-      - name: Pull changes
-        run: |
-            git pull
-
       - name: Commit changes if any
         uses: EndBug/add-and-commit@v9
 
@@ -89,7 +68,21 @@ jobs:
     needs: [Client, Server]
     steps:
         - name: Checkout
-          uses: actions/checkout@v4
+          uses: actions/checkout@v4      
+          with:
+            fetch-depth: 0  
+            ref: ${{ github.event.pull_request.head.ref }}
+
+        - name: Format
+          run: |
+            cd binGO.server
+            go fmt
+
+            cd ../binGO.client
+            go fmt
+
+        - name: Commit changes if any
+          uses: EndBug/add-and-commit@v9
 
         - name: Approve pull request 
           if: ${{ success() }}
