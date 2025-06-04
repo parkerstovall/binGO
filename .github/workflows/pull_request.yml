@@ -1,0 +1,74 @@
+name: Pull Request
+
+on: pull_request
+
+permissions:
+  contents: write
+
+jobs:
+  Client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Build
+        run: go build
+
+      - name: Test
+        run: go test
+
+      - name: Format
+        run: go fmt
+
+      - name: Commit changes if any
+        uses: EndBug/add-and-commit@v9
+        
+  Server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Build
+        run: go build
+
+      - name: Test
+        run: go test
+
+      - name: Format
+        run: go fmt
+
+      - name: Commit changes if any
+        uses: EndBug/add-and-commit@v9
+
+  AutoApproveOnSuccess:
+    runs-on: ubuntu-latest
+    needs: [Client, Server]
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Approve pull request 
+          if: ${{ success() }}
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+              gh pr merge --auto --squash ${{ github.event.pull_request.html_url }}
