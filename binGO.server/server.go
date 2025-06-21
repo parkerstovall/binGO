@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 type binGOServer struct {
 	gm        *game_manager.GameManager
 	clients   map[*websocket.Conn]bool
-	broadcast chan string
+	broadcast chan int
 	mu        sync.Mutex
 }
 
@@ -23,7 +24,7 @@ func NewServer(gm *game_manager.GameManager) *binGOServer {
 	return &binGOServer{
 		gm:        gm,
 		clients:   make(map[*websocket.Conn]bool),
-		broadcast: make(chan string),
+		broadcast: make(chan int),
 	}
 }
 
@@ -62,10 +63,14 @@ func (s *binGOServer) handleClient(conn *websocket.Conn) {
 
 	// Optionally read messages from client here
 	for {
-		_, _, err := conn.Reader(context.Background())
+		_, msg, err := conn.Read(context.Background())
 		if err != nil {
 			fmt.Printf("Error reading from client: %v\n", err)
 			break
+		}
+
+		if string(msg) == "BINGO!" {
+			fmt.Println("Bingo received from client")
 		}
 	}
 }
@@ -82,7 +87,7 @@ func (s *binGOServer) StartBallCaller() {
 		}
 		text := game_manager.GetBingoBallText(ball)
 		fmt.Printf("Called ball: %s\n", text)
-		s.broadcast <- text
+		s.broadcast <- ball
 	}
 }
 
@@ -96,7 +101,7 @@ func (s *binGOServer) StartBroadcaster() {
 
 				writer, err := c.Writer(ctx, websocket.MessageText)
 				if err == nil {
-					writer.Write([]byte(msg))
+					writer.Write([]byte(strconv.Itoa(msg)))
 					writer.Close()
 				}
 			}(conn)
