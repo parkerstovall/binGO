@@ -68,6 +68,13 @@ func (s *binGOServer) handleClient(conn *websocket.Conn) {
 			fmt.Printf("Error reading from client: %v\n", err)
 			break
 		}
+	}
+}
+
+func (s *binGOServer) StartBallCaller() {
+	for {
+		fmt.Println("Press Enter to call a bingo ball")
+		fmt.Scanln()
 
 		if string(msg) == "BINGO!" {
 			fmt.Println("Bingo received from client")
@@ -80,13 +87,6 @@ func (s *binGOServer) StartBallCaller() {
 		fmt.Println("Press Enter to call a bingo ball")
 		fmt.Scanln()
 
-		ball, err := s.gm.CallBingoBall()
-		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			continue
-		}
-		text := game_manager.GetBingoBallText(ball)
-		fmt.Printf("Called ball: %s\n", text)
 		s.broadcast <- ball
 	}
 }
